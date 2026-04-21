@@ -1,0 +1,71 @@
+ADR-002: Implementación de roles y permisos diferenciados
+
+Título:
+
+Implementación de roles y permisos diferenciados en la base de datos
+
+Contexto:
+
+El sistema maneja múltiples dominios funcionales (geografía, aerolínea, clientes, vuelos, etc.) y requiere control de acceso sobre las operaciones en la base de datos.
+
+Se implementó una estrategia de seguridad directamente en PostgreSQL utilizando roles con diferentes niveles de acceso, gestionados mediante scripts versionados con Liquibase.
+
+Los roles definidos son:
+
+app_admin
+
+app_user
+
+app_readonly
+
+Problema:
+
+Sin una gestión adecuada de permisos:
+
+Todos los usuarios podrían tener acceso total a la base de datos
+Se compromete la seguridad y la integridad de la información
+No hay control sobre quién puede leer, insertar o modificar datos
+
+Decisión:
+
+Se implementa un esquema de control de acceso basado en roles con permisos diferenciados:
+
+app_admin
+Acceso total sobre todas las tablas y secuencias
+Puede realizar operaciones DDL y DML
+
+app_user
+Permisos de lectura y escritura básica
+Puede ejecutar: SELECT, INSERT, UPDATE
+
+app_readonly
+Acceso únicamente de lectura
+Solo puede ejecutar: SELECT
+
+Además:
+
+Se asignan permisos sobre todas las tablas existentes
+Se configuran ALTER DEFAULT PRIVILEGES para asegurar que futuras tablas mantengan la misma política de acceso
+La configuración se gestiona mediante scripts versionados en Liquibase (DCL)
+
+Justificación técnica:
+
+Permite aplicar el principio de mínimo privilegio
+Mejora la seguridad y el control de acceso a los datos
+Facilita la administración de usuarios según su rol en el sistema
+Garantiza consistencia en los permisos incluso en futuras migraciones
+Se integra correctamente con la estrategia de versionamiento del proyecto
+
+Consecuencias:
+
+✅ Positivas:
+
+Mayor seguridad en la base de datos
+Control claro de accesos por tipo de usuario
+Escalabilidad en la gestión de permisos
+Integración con Liquibase para trazabilidad
+
+⚠️ Consideraciones:
+
+Es necesario mantener actualizados los permisos cuando se agreguen nuevos objetos fuera del flujo controlado
+Se requiere disciplina en el uso de roles para evitar asignaciones incorrectas
